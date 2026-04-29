@@ -2,6 +2,7 @@
 
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
+import redis from "@/cache";
 import { authorizeUserToEditArticle } from "@/db/authz";
 import db from "@/db/index";
 import { articles } from "@/db/schema";
@@ -42,9 +43,11 @@ export async function createArticle(data: CreateArticleInput) {
       slug: `${Date.now()}`,
       published: true,
       authorId: user.id,
+      imageUrl: data.imageUrl ?? undefined,
     })
     .returning({ id: articles.id });
 
+  redis.del("articles:all");
   const articleId = response[0]?.id;
   return { success: true, message: "Article create logged", id: articleId };
 }
@@ -66,6 +69,7 @@ export async function updateArticle(id: string, data: UpdateArticleInput) {
     .set({
       title: data.title,
       content: data.content,
+      imageUrl: data.imageUrl ?? undefined,
     })
     .where(eq(articles.id, +id));
 

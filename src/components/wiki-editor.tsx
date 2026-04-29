@@ -290,7 +290,7 @@ export default function WikiEditor({
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="min-w-[100px] cursor-pointer"
+                className="min-w-25 cursor-pointer"
               >
                 {isSubmitting ? "Saving..." : "Save Article"}
               </Button>
