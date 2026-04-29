@@ -8,6 +8,13 @@
       "when": 1777258383327,
       "tag": "0000_certain_power_pack",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1777439159671,
+      "tag": "0001_workable_cloak",
+      "breakpoints": true
     }
   ]
 }

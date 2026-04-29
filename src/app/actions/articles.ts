@@ -2,6 +2,7 @@
 
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
+import summarizeArticle from "@/ai/summarize";
 import redis from "@/cache";
 import { authorizeUserToEditArticle } from "@/db/authz";
 import db from "@/db/index";
@@ -35,6 +36,8 @@ export async function createArticle(data: CreateArticleInput) {
 
   console.log("✨ createArticle called:", data);
 
+  const summary = await summarizeArticle(data.title || "", data.content || "");
+
   const response = await db
     .insert(articles)
     .values({
@@ -44,6 +47,7 @@ export async function createArticle(data: CreateArticleInput) {
       published: true,
       authorId: user.id,
       imageUrl: data.imageUrl ?? undefined,
+      summary,
     })
     .returning({ id: articles.id });
 
@@ -64,12 +68,15 @@ export async function updateArticle(id: string, data: UpdateArticleInput) {
 
   console.log("📝 updateArticle called:", { id, ...data });
 
+  const summary = await summarizeArticle(data.title || "", data.content || "");
+
   const _response = await db
     .update(articles)
     .set({
       title: data.title,
       content: data.content,
       imageUrl: data.imageUrl ?? undefined,
+      summary: summary ?? undefined,
     })
     .where(eq(articles.id, +id));
 

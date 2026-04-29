@@ -5,8 +5,20 @@ import redis from "@/cache";
 import db from "@/db/index";
 import { articles, usersSync } from "@/db/schema";
 
-export async function getArticles() {
-  const cached = await redis.get("articles:all");
+// The list view selects only a subset of Article fields and adds the author's
+// resolved name. Use a dedicated type for the list response.
+export type ArticleList = {
+  id: number;
+  title: string;
+  createdAt: string;
+  summary: string | null;
+  content: string;
+  author: string | null;
+  imageUrl?: string | null;
+};
+
+export async function getArticles(): Promise<ArticleList[]> {
+  const cached = await redis.get<ArticleList[]>("articles:all");
   if (cached) {
     console.log("🎯 Get Articles Cache Hit!");
     return cached;
@@ -16,16 +28,21 @@ export async function getArticles() {
       title: articles.title,
       id: articles.id,
       createdAt: articles.createdAt,
+      summary: articles.summary,
       content: articles.content,
       author: usersSync.name,
     })
     .from(articles)
     .leftJoin(usersSync, eq(articles.authorId, usersSync.id));
   console.log("🙅‍♂️ Get Articles Cache Miss!");
-  redis.set("articles:all", response, {
-    ex: 60, // one minute
-  });
-  return response;
+  try {
+    await redis.set("articles:all", JSON.stringify(response), {
+      ex: 60,
+    });
+  } catch (err) {
+    console.warn("Failed to set articles cache", err);
+  }
+  return response as unknown as ArticleList[];
 }
 
 export async function getArticleById(id: number) {

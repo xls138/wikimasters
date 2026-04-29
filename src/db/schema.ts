@@ -1,5 +1,4 @@
 import { boolean, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
-// import { usersSync } from "drizzle-orm/neon"; <- this doesn't work anymore
 
 export const articles = pgTable("articles", {
   id: serial("id").primaryKey(),
@@ -13,6 +12,7 @@ export const articles = pgTable("articles", {
     .references(() => usersSync.id),
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "string" }).defaultNow().notNull(),
+  summary: text("summary"),
 });
 
 const schema = { articles };
